@@ -50,6 +50,6 @@ jobs:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
           # Вкажіть шлях до готового файлу (наприклад, .exe або .zip архіву)
           # files: |
-          #   dist/*.exe
+          files: dist/*.exe
           generate_release_notes: true
           prerelease: ${{ github.event.inputs.prerelease || contains(github.ref_name, '-beta') || contains(github.event.inputs.tag, '-beta') }}
