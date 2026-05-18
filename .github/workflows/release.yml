@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build and Release (Windows)
 
 on:
   push:
@@ -15,36 +15,41 @@ on:
         default: false
 
 jobs:
-  build-and-release:
-    runs-on: ubuntu-latest
+  build-windows:
+    # Змінено на Windows! Тепер білд йде на Windows Server 2022/2025
+    runs-on: windows-latest
     permissions:
       contents: write
 
     steps:
       - uses: actions/checkout@v6
 
-      # 1. Налаштування Bun (можна замінити на actions/setup-node, якщо використовуєте Node.js)
+      # Налаштування Bun для Windows
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
 
-      # 2. Встановлення залежностей
+      # Якщо для збірки вашого проєкту потрібні інструменти компіляції C++ (MSVC),
+      # розкоментуйте цей крок. Якщо це чистий JS/TS — залишайте закоментованим.
+      # - name: Setup MSVC Developer Command Prompt
+      #   uses: ilammy/msvc-dev-cmd@v1
+      #   with:
+          # arch: x64
+
       - name: Install dependencies
         run: bun install
 
-      # 3. Збірка вашого проєкту (змініть команду під свій package.json, наприклад: run build)
+      # Команда збірки вашого проєкту (наприклад, bun run build або bun build.ts)
       - name: Build project
-        run: bun run build
+        run: bun run build:canary
 
-      # 4. Створення релізу на GitHub та завантаження туди артефактів збірки (наприклад, папки dist або архіву)
+      # Створення релізу на GitHub
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.event.inputs.tag || github.ref_name }}
-          # Вкажіть шлях до файлів, які треба прикріпити до релізу (опціонально)
+          # Вкажіть шлях до готового файлу (наприклад, .exe або .zip архіву)
           # files: |
-          #   dist/*.js 
+          #   dist/*.exe
           generate_release_notes: true
           prerelease: ${{ github.event.inputs.prerelease || contains(github.ref_name, '-beta') || contains(github.event.inputs.tag, '-beta') }}
-
-  
