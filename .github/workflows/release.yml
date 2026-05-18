@@ -1,0 +1,50 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to release (e.g., v1.0.0)'
+        required: true
+      prerelease:
+        description: 'Is this a pre-release?'
+        type: boolean
+        default: false
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      # 1. Налаштування Bun (можна замінити на actions/setup-node, якщо використовуєте Node.js)
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # 2. Встановлення залежностей
+      - name: Install dependencies
+        run: bun install
+
+      # 3. Збірка вашого проєкту (змініть команду під свій package.json, наприклад: run build)
+      - name: Build project
+        run: bun run build
+
+      # 4. Створення релізу на GitHub та завантаження туди артефактів збірки (наприклад, папки dist або архіву)
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.tag || github.ref_name }}
+          # Вкажіть шлях до файлів, які треба прикріпити до релізу (опціонально)
+          # files: |
+          #   dist/*.js 
+          generate_release_notes: true
+          prerelease: ${{ github.event.inputs.prerelease || contains(github.ref_name, '-beta') || contains(github.event.inputs.tag, '-beta') }}
+
+  
